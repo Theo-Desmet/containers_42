@@ -2,9 +2,24 @@
 
 #include <memory>
 
+#include "reverse_iterator.hpp"
+#include "iteratorVector.hpp"
+#include "iteratorConstVector.hpp"
+
 namespace ft{
 	template<class T, class Allocator = std::allocator<T> >
 	class vector {
+
+		/*	
+		**	private members
+		*/
+
+		private:
+			Allocator	_alloc;
+			T			*_ptr_t;
+			std::size_t	_allocaded_mem;
+			std::size_t	_used_mem;
+
 		public:
 
 			/*	
@@ -20,30 +35,51 @@ namespace ft{
 			typedef typename std::ptrdiff_t 					difference_type;
 			typedef typename std::size_t 						size_type;
 
+			typedef ft::iteratorVector<value_type>			iterator;
+			typedef ft::iteratorConstVector<value_type>			const_iterator;
+			typedef ft::reverse_iterator<iterator>			revserse_iterator;
+			typedef ft::reverse_iterator<const_iterator>	revserse_cosnt_iterator;
+
+
 			/*	
 			**	constructor/destructor
 			*/
 
 			explicit vector (const allocator_type& alloc = allocator_type())
-			: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0)
-			, _used_mem(0) {};
+			: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0), _used_mem(0) {};
 
-			explicit vector (size_type n, const value_type& val = value_type(),
-				const allocator_type& alloc = allocator_type())
-			: _alloc(alloc), _ptr_t(&val), _allocaded_mem(n)
-			, _used_mem(n) {
-				//new n
+			explicit vector (size_type n, const value_type& val = value_type()
+			, const allocator_type& alloc = allocator_type())
+			: _alloc(alloc), _ptr_t(&val), _allocaded_mem(0), _used_mem(0) {
+				_alloc.allocate(n);
+				_allocaded_mem = n;
+				for (std::size_t i = 0; i < n; i++)
+					_alloc.construct(_ptr_t + i, n);
+				_used_mem = n;
+
+
+
+				//change for insert whit opti extend
+
+
+
 			};
 
 			template <class InputIterator>
 			vector (InputIterator first, InputIterator last, 
 				const allocator_type& alloc = allocator_type())
-			: _alloc(alloc), _ptr_t(NULL) {
-				//push_back
+			: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0), _used_mem(0) {
+				difference_type diff = last - first;
+				_alloc.allocate(diff);
+				_allocaded_mem = (diff);
+				for (std::size_t i = 0; i < diff; i++)
+					_alloc.construct(_ptr_t + i , first + i);
+				_used_mem = (diff);
 			};
 
-			vector (const vector& x) {
-				//copy
+			vector (const vector& x) : _alloc(allocator_type())
+			, _ptr_t(0), _allocaded_mem(0), _used_mem(0) {
+				*this = x;
 			};
 
 			virtual ~vector() {
@@ -52,6 +88,26 @@ namespace ft{
 				}
 				if (_allocaded_mem != 0) 
 					_alloc.deallocate(_ptr_t, _allocaded_mem);
+			};
+
+			/*
+			**	iterator fonctions
+			*/
+
+			iterator begin() {
+				return (this->_ptr_t);
+			};
+
+			const_iterator begin() const {
+				return (this->_ptr_t);
+			};
+
+			iterator end() {
+				return (this->_ptr_t + this->_used_mem);
+			};
+
+			const_iterator end() const {
+				return (this->_ptr_t + this->_used_mem);
 			};
 
 			/*
@@ -79,13 +135,8 @@ namespace ft{
 
 
 		/*	
-		**	private members
+		**	private menbers fonction
 		*/
-
-		Allocator	_alloc;
-		T			*_ptr_t;
-		std::size_t	_allocaded_mem;
-		std::size_t	_used_mem;
 
 		//double the mem size
 		void	_extend_mem_() {

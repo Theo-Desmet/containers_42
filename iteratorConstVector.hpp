@@ -14,11 +14,11 @@ namespace ft {
 			**	member types
 			*/
 
-			typedef T								value_type;
-			typedef std::ptrdiff_t					difference_type;
-			typedef T*								pointer;
-			typedef T&								reference;
-			typedef std::random_access_iterator_tag	iterator_category;
+			typedef T										value_type;
+			typedef std::ptrdiff_t							difference_type;
+			typedef T const*								pointer;
+			typedef T const&								reference;
+			typedef std::random_access_iterator_tag			iterator_category;
 
 
 			/*
@@ -29,17 +29,13 @@ namespace ft {
 
 			iteratorConstVector(pointer ptr) : _ptr(ptr) {};
 
-			iteratorConstVector(iteratorConstVector const &copy) : _ptr(copy._ptr) {};
+			iteratorConstVector(iteratorConstVector const &copy)
+			: _ptr(copy._ptr) {};
 
-			iteratorConstVector(ft::vectorIterator<value_type> const &src) {
-				_ptr = src.operator->();
+			iteratorConstVector(iteratorVector<value_type> const &src) {
+				this->_ptr = src.operator->();
 			};
 
-			iteratorConstVector operator=(iteratorConstVector const &copy) {
-				if (this != &copy)
-					this->_ptr = copy._ptr;
-				return (*this);
-			};
 
 			~iteratorConstVector() {};
 
@@ -70,15 +66,15 @@ namespace ft {
 
 			/*  reference   */
 
-			reference operator*() {
+			reference operator*() const {
 				return (*this->_ptr);
 			}
 
-			pointer operator->() {
+			pointer operator->() const {
 				return (this->_ptr);
 			}
 
-			reference operator[](difference_type n) {
+			reference operator[](difference_type n) const {
 				return (*(this->_ptr + n));
 			}
 
@@ -137,6 +133,6 @@ namespace ft {
 
 
 		private:
-			value_type*	_ptr;
+			value_type const*	_ptr;
 	};
 }

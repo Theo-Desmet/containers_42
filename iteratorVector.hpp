@@ -64,15 +64,15 @@ namespace ft {
 
 			/*  reference   */
 
-			reference operator*() {
+			reference operator*() const {
 				return (*this->_ptr);
 			}
 
-			pointer operator->() {
+			pointer operator->() const {
 				return (this->_ptr);
 			}
 
-			reference operator[](difference_type n) {
+			reference operator[](difference_type n) const {
 				return (*(this->_ptr + n));
 			}
 

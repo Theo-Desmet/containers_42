@@ -46,19 +46,42 @@ namespace ft{
 			** member fonctions overloads
 			*/
 
+			/*  reference   */
+
 			reference operator*() const {
 				Iterator tmp = this->_base_iterator;
 				return  (*--tmp);
 			};
 
+			pointer operator->() const {
+				return (_base_iterator);
+			}
+
+			reference operator[] (difference_type n) const {
+				return (*(this->_base_iterator - n));
+			};
+
+			/*  arithmetic   */
+			
 			reverse_iterator operator+ (difference_type n) const {
 				return (this->_base_iterator - n);
 			};
 
 			reverse_iterator& operator+= (difference_type n) {
-				return (*this->_base_iterator -= n);
+				*this->_base_iterator -= n;
+				return (*this);
 			};
 
+			reverse_iterator operator- (difference_type n) const {
+				return (this->_base_iterator + n);
+			};
+
+			reverse_iterator& operator-= (difference_type n) {
+				*this->_base_iterator += n;
+				return (*this);
+			};
+
+			/*   incrementation   */
 
 			reverse_iterator& operator++() {
 				--this->_base_iterator;
@@ -71,15 +94,6 @@ namespace ft{
 				return (tmp);
 			};
 
-			reverse_iterator operator- (difference_type n) const {
-				return (this->_base_iterator + n);
-			};
-
-			reverse_iterator& operator-= (difference_type n) {
-				return (*this->_base_iterator += n);
-			};
-
-
 			reverse_iterator& operator--() {
 				++this->_base_iterator;
 				return (*this);
@@ -91,14 +105,6 @@ namespace ft{
 				return (tmp);
 			};
 
-			pointer operator->() const {
-				return &(operator*());
-			}
-
-			reference operator[] (difference_type n) const {
-				Iterator tmp = this->_base_iterator;
-				return (*tmp - n);
-			};
 
 
 		protected:

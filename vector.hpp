@@ -7,6 +7,8 @@
 #include "reverse_iterator.hpp"
 #include "iteratorVector.hpp"
 #include "iteratorConstVector.hpp"
+#include "enable_if.hpp"
+#include "is_integral.hpp"
 
 namespace ft{
 	template<class T, class Allocator = std::allocator<T> >
@@ -190,7 +192,8 @@ namespace ft{
 
 		    reference at (size_type n) {
 				if (n >= this->_used_mem)
-					throw std::out_of_range(this->_out_of_range(this->_used_mem));
+					throw std::out_of_range(this->_out_of_range(
+							this->_used_mem));
 				return (this->_ptr_t[n]);
 			};
 
@@ -219,21 +222,16 @@ namespace ft{
 			/*	
 			**	modifiers fonction:
 			*/
-
-			template <class InputIterator>
-			void assign (InputIterator first, InputIterator last) {
-				this->clear();
-				for ( ; first < last; first++)
-					this->_alloc.construct(this->_ptr_t + first, *first);
-				this->_used_mem = last - first;
-			};
-
+		
 			void assign (size_type n, const value_type& val) {
 				this->clear();
 				for (std::size_t i = 0; i < n; i++)
 					this->_alloc.construct(this->_ptr_t + i, val);
 				this->_used_mem = n;
 			};
+
+			template <class InputIterator>
+			void assign (InputIterator first, InputIterator last);
 
 			void push_back (const value_type& val){
 				if (_used_mem == _allocaded_mem)
@@ -242,10 +240,43 @@ namespace ft{
 				_used_mem++;
 			}
 
-			void pop_back (){
+			void pop_back() {
 				_alloc.destroy(_ptr_t + _used_mem);
 				_used_mem--;
 			}
+
+			iterator insert (iterator pos, const value_type& val) {
+				if (this->_used_mem == this->_allocaded_mem)
+					this->_extend_mem_();
+				for (std::size_t i = 0; i <= this->_used_mem - pos; i++) {
+					value_type temp = *(this->_ptr_t + pos + i);
+					this->_alloc.destroy(this->_ptr_t + pos + i);
+					this->_alloc.construct(this->_ptr_t + pos + i, val);
+				}
+				this->_used_mem++;
+				
+				return (pos);
+			};
+
+			void insert (iterator pos, size_type n, const value_type& val) {
+				while (this->_used_mem + n > this->_allocaded_mem)
+					this->_extend_mem();
+				for (std::size_t i = this->_used_mem
+						; i > pos + n - this->_ptr_t; i--) {
+					this->_alloc.construct(this->_ptr_t + i + n
+							, *(this->_ptr_t + i));
+					this->_alloc.destroy(this->_ptr_t + i);
+				}
+				for (std::size_t i = 0; i < n; i++) {
+					this->_alloc.construct(this->_ptr_t + pos + i, val);
+				}
+				this->_used_mem += n;
+
+				return (pos);
+			};
+
+			template <class InputIterator>
+   			void insert (iterator position, InputIterator first, InputIterator last);
 
 			void clear() {
 				for (std::size_t i = 0; i < this->_used_mem; i++)

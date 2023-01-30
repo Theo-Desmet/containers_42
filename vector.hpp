@@ -40,7 +40,7 @@ namespace ft{
 			typedef typename std::size_t 						size_type;
 
 			typedef ft::iteratorVector<value_type>			iterator;
-			typedef ft::iteratorConstVector<value_type> 	const_iterator;
+			typedef ft::iteratorVector<value_type const> 	const_iterator;
 			typedef ft::reverse_iterator<iterator>			reverse_iterator;
 			typedef ft::reverse_iterator<const_iterator>	const_reverse_iterator;
 
@@ -55,24 +55,20 @@ namespace ft{
 			explicit vector (size_type n, const value_type& val = value_type()
 			, const allocator_type& alloc = allocator_type())
 			: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0), _used_mem(0) {
-				this->reserve(n);
+				this->_ptr_t = this->_alloc.allocate(n);
 				for (std::size_t i = 0; i < n; i++)
 					_alloc.construct(_ptr_t + i, val);
 				_allocaded_mem = n;
 				_used_mem = n;
-
-
-
-				//change for insert whit opti extend
-
-
-
 			};
 
-			template <class InputIterator>
-			vector (InputIterator first, InputIterator last, 
-				const allocator_type& alloc = allocator_type())
-			: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0), _used_mem(0) {
+			template <class InputIt>
+			vector (InputIt first, InputIt last, 
+					const allocator_type& alloc = allocator_type(),
+					typename ft::enable_if<!ft::is_integral<InputIt>::value,
+					bool>::type = true)
+					: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0),
+					_used_mem(0) {
 				difference_type diff = last - first;
 				_alloc.allocate(diff);
 				_allocaded_mem = (diff);
@@ -246,43 +242,85 @@ namespace ft{
 			}
 
 			iterator insert (iterator pos, const value_type& val) {
-				if (this->_used_mem == this->_allocaded_mem)
-					this->_extend_mem_();
-				for (std::size_t i = 0; i <= this->_used_mem - pos; i++) {
-					value_type temp = *(this->_ptr_t + pos + i);
-					this->_alloc.destroy(this->_ptr_t + pos + i);
-					this->_alloc.construct(this->_ptr_t + pos + i, val);
-				}
+				size_t dist = this->_ptr_t - &(*pos);
+				if (this->_allocaded_mem == this->_used_mem)
+					_extend_mem_();
+				for (size_t i = this->_used_mem; i > dist; i--) {
+					this->_alloc.destroy(this->_ptr_t + i);
+					this->_alloc.construct(this->_ptr_t + i,
+						*(this->_ptr_t + i - 1));
+				}				
+				this->_alloc.destroy(this->_ptr_t + dist);
+				this->_alloc.construct(this->_ptr_t + dist, val);
 				this->_used_mem++;
+
+				return (begin() + dist);
+			};
+
+			void insert (iterator pos, size_type n, const value_type& val) {
+				size_t dist = this->_ptr_t - &(*pos);
+				while (this->_used_mem + n > this->_allocaded_mem)
+					_extend_mem_();
+				for (size_t i = this->_used_mem; i > dist; i--) {
+					this->_alloc.destroy(this->_ptr_t + i + n - 1);
+					this->_alloc.construct(this->_ptr_t + i + n - 1,
+						*(this->_ptr_t + i - 1));
+				}
+				for (size_t i = 0; i < n; i++)	{
+					this->_alloc.destroy(this->_ptr_t + i + dist);
+					this->_alloc.construct(this->_ptr_t + i + dist, val);
+				}
+				this->_used_mem += n;
+			};
+
+			template <class InputIt>
+		    void insert (iterator pos, InputIt first, InputIt last,
+					typename ft::enable_if<!ft::is_integral<InputIt>::value,
+					bool>::type = true) {
+				size_t dist = this->_ptr_t + this->_used_mem - &(*pos);
+				size_t count = last - first;
+				while (this->_used_mem + dist > this->_allocaded_mem)
+					_extend_mem_();
+				for (size_t i = this->_used_mem; i > dist; i--) {
+					this->_alloc.destroy(this->_ptr_t + i + count - 1);
+					this->_alloc.construct(this->_ptr_t + i + count - 1,
+						*(this->_ptr_t + i - 1));
+				}
+				for (size_t i = 0; i < dist; i++, first++)	{
+					this->_alloc.destroy(this->_ptr_t + i + count);
+					this->_alloc.construct(this->_ptr_t + i + dist, *first);
+				}
+				this->_used_mem += dist;
+			};
+
+			iterator erase (iterator pos) {
+				for (pointer i = &(*pos); i < this->_ptr_t + this->_used_mem;
+						i++) {
+					this->_alloc.destroy(i);
+					this->_alloc.construct(i, *(i + 1));
+				}
+				this->_used_mem--;
 				
 				return (pos);
 			};
 
-			void insert (iterator pos, size_type n, const value_type& val) {
-				while (this->_used_mem + n > this->_allocaded_mem)
-					this->_extend_mem();
-				for (std::size_t i = this->_used_mem
-						; i > pos + n - this->_ptr_t; i--) {
-					this->_alloc.construct(this->_ptr_t + i + n
-							, *(this->_ptr_t + i));
-					this->_alloc.destroy(this->_ptr_t + i);
+			iterator erase (iterator first, iterator last) {
+				size_t	dist = last - first;
+				pointer	pos = &(*first);
+
+				for (pointer i = &(*first);
+						i < (this->_ptr_t + this->_used_mem - dist) ; i++) {
+					this->_alloc.destroy(i);
+					this->_alloc.construct(i, *(i + dist));
 				}
-				for (std::size_t i = 0; i < n; i++) {
-					this->_alloc.construct(this->_ptr_t + pos + i, val);
-				}
-				this->_used_mem += n;
+				for (pointer i = &(*first) + this->_used_mem - dist;
+						i < (this->_ptr_t + this->_used_mem ); i++)
+					this->_alloc.destroy(i);
+				this->_used_mem -= dist;
 
 				return (pos);
 			};
 
-			template <class InputIterator>
-   			void insert (iterator position, InputIterator first, InputIterator last);
-
-			void clear() {
-				for (std::size_t i = 0; i < this->_used_mem; i++)
-					this->_alloc.destroy(this->_ptr_t + i);
-				this->_used_mem = 0;
-			};
 
 		/*	
 		**	private members fonction

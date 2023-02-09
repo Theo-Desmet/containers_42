@@ -65,7 +65,7 @@ namespace ft{
 			vector (InputIt first, InputIt last, 
 					const allocator_type& alloc = allocator_type(),
 					typename ft::enable_if<!ft::is_integral<InputIt>::value,
-					bool>::type = true)
+						bool>::type = true)
 					: _alloc(alloc), _ptr_t(NULL), _allocaded_mem(0),
 					_used_mem(0) {
 				difference_type diff = last - first;

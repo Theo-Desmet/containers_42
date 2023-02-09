@@ -6,13 +6,15 @@
 
 
 
-#include "vector.hpp"
-#include "iterator_traits.hpp"
-#include "reverse_iterator.hpp"
-#include "is_integral.hpp"
-#include "enable_if.hpp"
-#include "make_pair.hpp"
-#include "pair.hpp"
+#include "vector/vector.hpp"
+#include "utils/iterator_traits.hpp"
+#include "utils/reverse_iterator.hpp"
+#include "utils/is_integral.hpp"
+#include "utils/enable_if.hpp"
+#include "utils/make_pair.hpp"
+#include "utils/pair.hpp"
+#include "red-black_tree/RBTree.hpp"
+#include "red-black_tree/RBTree_visualizer.hpp"
 
 
 // int main ()
@@ -85,29 +87,28 @@
 // }
 
 
-int main ()
-{
-  ft::vector<int> myvector (3,100);
-  ft::vector<int>::iterator it;
+#include <fstream>
+#include <iostream>
+int	rng() {
+	int rng = 0;
+	size_t size = sizeof(rng); 
+	std::ifstream urandom("/dev/urandom", std::ios::in| std::ios::binary);
+	urandom.read(reinterpret_cast<char *>(&rng), size);
+	return (rng % 100);
+}
 
-  it = myvector.begin();
-  it = myvector.insert ( it , 200 );
+int main() {
+	Tree<int> mytree(0);
+	
+	for (size_t i = 0; i < 10; i++) {
+		mytree.insert(i);
+	}
 
-  myvector.insert (it,2,300);
+	// mytree.insert(1);
+	// mytree.insert(2);
+	// mytree.insert(4);
+	// mytree.insert(3);
 
-  // "it" no longer valid, get a new one:
-  it = myvector.begin();
 
-  ft::vector<int> anothervector (2,400);
-  myvector.insert (it+2,anothervector.begin(),anothervector.end());
-
-  int myarray [] = { 501,502,503 };
-  myvector.insert (myvector.begin(), myarray, myarray+3);
-
-  std::cout << "myvector contains:";
-  for (it=myvector.begin(); it<myvector.end(); it++)
-    std::cout << ' ' << *it;
-  std::cout << '\n';
-
-  return 0;
+	std::cout << mytree << std::endl;
 }

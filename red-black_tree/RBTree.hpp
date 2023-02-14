@@ -65,7 +65,7 @@ class Tree {
 
 		~Tree() {
 			this->_alloc.deallocate(this->_null_node, 1);
-			this->_alloc.deallocate(this->_root_node, 1);
+			//this->_alloc.deallocate(this->_root_node, 1);
 			//add loop free
 		}
 
@@ -157,14 +157,21 @@ class Tree {
 				, Compare cmp = std::less<T>()) {
 			Node<value_type>* act_node = this->_root_node;
 
-			while (act_node && act_node != this->_null_node) {
+			while (1) {
 				if (cmp(new_elem, act_node->data)) {
-					act_node = act_node->left;
-				} else if (cmp(act_node->data, new_elem)){
-					act_node = act_node->right;
+					// if (act_node->left || act_node->left == this->_null_node)
+						act_node = act_node->left;
+					// else
+						// return (act_node);
+				} else if (cmp(act_node->data, new_elem)) {
+					// if (act_node->right || act_node->right == this->_null_node)
+						act_node = act_node->right;
+					// else
+						// return (act_node);
+				} else {
+					return (act_node);
 				}
 			}
-			return (act_node)
 		}
 
 		Node<value_type>*	find_minimum(Node<value_type>* node) {
@@ -181,7 +188,13 @@ class Tree {
 			return (node);
 		}
 
-		void	delete_node(value_type const elem
+		// void	replace_node(Node<value_type>* node
+		// 		, Node<value_type>* replace) {
+			
+		// }
+
+
+		void	remove_node(value_type const elem
 				, Compare cmp = std::less<T>()) {
 			Node<value_type>*	node = search(elem, cmp);
 			if (!node)
@@ -189,13 +202,17 @@ class Tree {
 			Node<value_type>*	temp;
 			bool	color = node->color;
 		
+			// 0 or 1 child
 			if (!node->left || node->left == this->_null_node
 					|| !node->right || node->right == this->_null_node) {
 				temp = node->parent;
-				color = node->color;			
-			} else {
- 				Node inOrderSuccessor = find_minimum(node.right);
-
+				color = node->color;
+				__delete_node_zero_or_one_child(node);
+			} else { // 2 child
+ 				Node<value_type>* right_smallest = find_minimum(node->right);
+				node->data = right_smallest->data;
+				color = right_smallest;
+				__delete_node_zero_or_one_child(right_smallest);
 			}
 		}
 
@@ -272,6 +289,26 @@ class Tree {
 			this->_null_node->left = NULL;
 			this->_null_node->right = NULL;
 			this->_null_node->color = BLACK;
+		}
+
+		void	__delete_node_zero_or_one_child(Node<value_type>* node) {
+			if (node->left && node->left != this->_null_node) {
+				rotate_right(node);
+				__delete_node (node);
+			} else if (node->right && node->right != this->_null_node) {
+				rotate_left(node);
+				__delete_node (node);
+			} else {
+				__delete_node(node);
+			}
+		}
+		void	__delete_node(Node<value_type>*  node) {
+			if (node->parent->right == node) {
+				node->parent->right = node->right;
+			} else if (node->parent->left == node) {
+				node->parent->left = node->left;
+			}
+			delete (node);
 		}
 
 		Node<value_type>* __new_node(Node<value_type>* parent,

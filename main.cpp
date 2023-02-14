@@ -100,9 +100,12 @@ int	rng() {
 int main() {
 	Tree<int> mytree(0);
 	
-	for (size_t i = 0; i < 10; i++) {
-		mytree.insert(i);
-	}
+	// for (size_t i = 0; i < 10; i++) {
+		mytree.insert(0);
+	// }
+	std::cout << mytree << std::endl;
+	
+	mytree.remove_node(0);
 
 	// mytree.insert(1);
 	// mytree.insert(2);

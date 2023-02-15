@@ -64,9 +64,18 @@ class Tree {
 		//add iterator
 
 		~Tree() {
+			Node<value_type>* temp = this->_root_node;
+			Node<value_type>* node;
+			while (1) {
+				node = search_min(temp);
+				if (node == this->_root_node)
+					break ;
+				temp = node->parent;
+				__delete_node(node);
+			}
 			this->_alloc.deallocate(this->_null_node, 1);
-			//this->_alloc.deallocate(this->_root_node, 1);
-			//add loop free
+			this->_alloc.deallocate(this->_root_node, 1);
+
 		}
 
 		// Tree& operator=(Tree& const lhs) {
@@ -83,6 +92,15 @@ class Tree {
 			Node<value_type>*	parent;
 			bool 	direction;
 
+			if (this->_null_node == this->_root_node) {
+				this->_root_node = __new_node(act_node, new_elem);
+				this->_root_node->left = this->_null_node;
+				this->_root_node->right = this->_null_node;
+				this->_null_node->left = this->_root_node;
+				this->_null_node->right = this->_root_node;
+				this->_root_node->color = BLACK;
+				return ;
+			}
 			while (act_node && act_node != this->_null_node) {
 				if (cmp(new_elem, act_node->data)) {
 					parent = act_node;
@@ -99,11 +117,11 @@ class Tree {
 
 			act_node = parent;
 			if (direction == LEFT) {
-				act_node->left = __new_node(act_node, new_elem);
+				act_node->left = __new_node(act_node, new_elem, LEFT);
 				insert_balance(act_node->left);
 			}
 			if (direction == RIGHT) {
-				act_node->right = __new_node(act_node, new_elem);
+				act_node->right = __new_node(act_node, new_elem, RIGHT);
 				insert_balance(act_node->right);
 			}
 		}
@@ -153,25 +171,121 @@ class Tree {
 			this->_root_node->color = BLACK;
 		}
 
+		void	remove_node(value_type const elem
+				, Compare cmp = std::less<T>()) {
+			Node<value_type>*	node = search(elem, cmp);
+			if (!node)
+				return ;
+			Node<value_type>*	temp;
+			bool	color = node->color;
+		
+			// 0 or 1 child
+			if (!node->left || node->left == this->_null_node
+					|| !node->right || node->right == this->_null_node) {
+				temp = node->parent;
+				color = node->color;
+				node = __delete_node_zero_or_one_child(node);
+			} else { // 2 child
+ 				Node<value_type>* right_smallest = find_minimum(node->right);
+				node->data = right_smallest->data;
+				color = right_smallest->color;
+				node = __delete_node_zero_or_one_child(right_smallest);
+			}
+			node->color = color;
+		}
+
+		Node<value_type>* get_sibling(Node<value_type>* node) {
+			if (node->parent->left
+					&& node->parent->left != this->_null_node
+					&& node->parent->left != node)
+				return (node->parent->left);
+			if (node->parent->right
+					&& node->parent->right != this->_null_node
+					&& node->parent->right != node)
+				return (node->parent->right);
+			return (NULL);
+		}
+
+		void	remove_rebalance(Node<value_type>* node) {
+			Node<value_type>* sibling = get_sibling(node);
+
+			if (sibling && sibling->color == RED) {
+				sibling->color = BLACK;
+				node->parent->color = RED;
+				if (node->parent->left == sibling) {
+					rotate_left(node->parent);
+				} else {
+					rotate_left(node->parent);
+				}
+				sibling = get_sibling(node->parent);
+			}
+
+			if ((!sibling->left || sibling->left->color == BLACK)
+					&& (!sibling->right || sibling->right->color == BLACK)) {
+				sibling->color = RED;
+				if (sibling->parent->color == RED)
+					rebalance_remove(sibling->parent);
+			}
+
+			else {
+				if (node->parent->left == node && sibling
+						&& sibling->rigth->color == RED) {
+					sibling->left->color = BLACK;
+					sibling->color = RED;
+					rotate_right(sibling);
+					sibling = node->parent->right;
+				} else if (node->parent->right && sibling
+						&& sibling->left->color == RED){
+					sibling->right->color = BLACK;
+					sibling->color = RED;
+					rotate_left(sibling);
+					sibling = node->parent->left;
+				}
+				sibling->color = node->parent->color;
+				node->parent->color = BLACK;
+				if (node->parent->left == node) {
+					sibling->right->color = BLACK;
+					rotate_left(sibling->parent);
+				} else {
+					sibling->left->color = BLACK;
+					rotate_right(sibling->parent);
+				}
+			}
+		}
+
+		/*
+		**	utils fonctions
+		*/
+
 		Node<value_type>*	search(value_type const new_elem
 				, Compare cmp = std::less<T>()) {
 			Node<value_type>* act_node = this->_root_node;
 
 			while (1) {
 				if (cmp(new_elem, act_node->data)) {
-					// if (act_node->left || act_node->left == this->_null_node)
 						act_node = act_node->left;
-					// else
-						// return (act_node);
 				} else if (cmp(act_node->data, new_elem)) {
-					// if (act_node->right || act_node->right == this->_null_node)
 						act_node = act_node->right;
-					// else
-						// return (act_node);
 				} else {
 					return (act_node);
 				}
 			}
+		}
+
+		Node<value_type>*	search_min(Node<value_type>* node) {
+			Node<value_type>* temp;
+			
+			while (1) {
+				temp = node;
+				while (node->left && node->left != this->_null_node)
+					node = node->left;
+				if (node->right && node->right != this->_null_node)
+					node = node->right;
+				if (node == temp)
+					break ;
+			}
+
+			return (node);
 		}
 
 		Node<value_type>*	find_minimum(Node<value_type>* node) {
@@ -187,38 +301,6 @@ class Tree {
 
 			return (node);
 		}
-
-		// void	replace_node(Node<value_type>* node
-		// 		, Node<value_type>* replace) {
-			
-		// }
-
-
-		void	remove_node(value_type const elem
-				, Compare cmp = std::less<T>()) {
-			Node<value_type>*	node = search(elem, cmp);
-			if (!node)
-				return ;
-			Node<value_type>*	temp;
-			bool	color = node->color;
-		
-			// 0 or 1 child
-			if (!node->left || node->left == this->_null_node
-					|| !node->right || node->right == this->_null_node) {
-				temp = node->parent;
-				color = node->color;
-				__delete_node_zero_or_one_child(node);
-			} else { // 2 child
- 				Node<value_type>* right_smallest = find_minimum(node->right);
-				node->data = right_smallest->data;
-				color = right_smallest;
-				__delete_node_zero_or_one_child(right_smallest);
-			}
-		}
-
-		/*
-		**	utils fonctions
-		*/
 
 		Node<value_type>*	get_node(value_type elem,
 				Compare cmp = std::less<T>()) const {
@@ -281,43 +363,77 @@ class Tree {
 		void	__init_node() {
 			this->_root_node = this->_alloc.allocate(1);
 			this->_null_node = this->_alloc.allocate(1);
+
 			this->_root_node->parent = this->_null_node;
 			this->_root_node->left = this->_null_node;
 			this->_root_node->right = this->_null_node;
 			this->_root_node->color = BLACK;
-			this->_null_node->parent = NULL;
-			this->_null_node->left = NULL;
-			this->_null_node->right = NULL;
+
+			this->_null_node->parent = this->_null_node;
+			this->_null_node->left = this->_root_node;
+			this->_null_node->right = this->_root_node;
 			this->_null_node->color = BLACK;
 		}
 
-		void	__delete_node_zero_or_one_child(Node<value_type>* node) {
+		Node<value_type>*	__delete_node_zero_or_one_child(
+				Node<value_type>* node) {
+			Node<value_type>* temp;
 			if (node->left && node->left != this->_null_node) {
+				temp = node->left;
 				rotate_right(node);
 				__delete_node (node);
 			} else if (node->right && node->right != this->_null_node) {
+				temp = node->right;
 				rotate_left(node);
 				__delete_node (node);
 			} else {
+				if (node == this->_root_node) {
+					__delete_node(node);
+					node = this->_null_node;
+					this->_root_node = this->_null_node;
+					return (this->_null_node);
+				}
+				temp = node->parent;
 				__delete_node(node);
 			}
+
+			return (temp); 
 		}
+
 		void	__delete_node(Node<value_type>*  node) {
 			if (node->parent->right == node) {
 				node->parent->right = node->right;
 			} else if (node->parent->left == node) {
 				node->parent->left = node->left;
 			}
-			delete (node);
+			if (node->left == this->_null_node) {
+				node->parent->left = this->_null_node;
+				this->_null_node->left = node->parent;
+			}
+			if (node->right == this->_null_node) {
+				node->parent->right = this->_null_node;
+				this->_null_node->right = node->parent;
+			}
+			this->_alloc.deallocate(node, 1);;
 		}
 
 		Node<value_type>* __new_node(Node<value_type>* parent,
-				value_type data) {
+				value_type data, bool direction = LEFT) {
 			Node<value_type>	*new_node;
 			new_node = this->_alloc.allocate(1);
 			new_node->parent = parent;
-			new_node->left = NULL;
-			new_node->right = NULL;
+			if (direction == LEFT && parent->left == this->_null_node) {
+				new_node->left = this->_null_node;
+				this->_null_node->left = new_node;
+			} else {
+				new_node->left = NULL;
+			}
+			if (direction == RIGHT && parent->right == this->_null_node) {
+				new_node->right = this->_null_node;
+				this->_null_node->right = new_node;
+			} else {
+				new_node->right = NULL;
+			}
 			new_node->data = data;
 			new_node->color = RED;		
 			return (new_node);

@@ -98,14 +98,25 @@ int	rng() {
 }
 
 int main() {
-	Tree<int> mytree(0);
-	
-	// for (size_t i = 0; i < 10; i++) {
-		mytree.insert(0);
+	Tree<int> mytree(19);
+
+	mytree.insert(17);	
+	mytree.insert(9);
+	mytree.insert(18);
+	mytree.insert(75);
+
+	// for (size_t i = 1; i < 10; i++) {
+	// 	mytree.insert(i);
 	// }
-	std::cout << mytree << std::endl;
-	
-	mytree.remove_node(0);
+
+
+
+
+	// mytree.remove_node(0);
+	// mytree.insert(0);
+	// mytree.insert(-1);
+	// mytree.insert(1);
+
 
 	// mytree.insert(1);
 	// mytree.insert(2);

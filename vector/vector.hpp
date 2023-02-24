@@ -71,7 +71,7 @@ namespace ft{
 				difference_type diff = last - first;
 				_alloc.allocate(diff);
 				_allocaded_mem = (diff);
-				for (std::size_t i = 0; i < diff; i++)
+				for (difference_type i = 0; i < diff; i++)
 					_alloc.construct(_ptr_t + i , first + i);
 				_used_mem = (diff);
 			};

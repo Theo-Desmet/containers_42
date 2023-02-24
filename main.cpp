@@ -13,8 +13,10 @@
 #include "utils/enable_if.hpp"
 #include "utils/make_pair.hpp"
 #include "utils/pair.hpp"
-#include "red-black_tree/RBTree.hpp"
-#include "red-black_tree/RBTree_visualizer.hpp"
+#include "RBTree/RBTree.hpp"
+#include "RBTree/RBTree_visualizer.hpp"
+#include "RBTree/RBTree_visualizer.hpp"
+#include "map/map.hpp"
 
 
 // int main ()
@@ -92,37 +94,12 @@
 int	rng() {
 	int rng = 0;
 	size_t size = sizeof(rng); 
-	std::ifstream urandom("/dev/urandom", std::ios::in| std::ios::binary);
+	std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
 	urandom.read(reinterpret_cast<char *>(&rng), size);
-	return (rng % 100);
+	return (rng % 1000);
 }
 
 int main() {
-	Tree<int> mytree(19);
+	ft::map<char, int> mymap;
 
-	mytree.insert(17);	
-	mytree.insert(9);
-	mytree.insert(18);
-	mytree.insert(75);
-
-	// for (size_t i = 1; i < 10; i++) {
-	// 	mytree.insert(i);
-	// }
-
-
-
-
-	// mytree.remove_node(0);
-	// mytree.insert(0);
-	// mytree.insert(-1);
-	// mytree.insert(1);
-
-
-	// mytree.insert(1);
-	// mytree.insert(2);
-	// mytree.insert(4);
-	// mytree.insert(3);
-
-
-	std::cout << mytree << std::endl;
 }
